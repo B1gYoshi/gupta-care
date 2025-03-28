@@ -6,8 +6,8 @@ export default function PatientRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to /patient/home when visiting /patient
-    router.push("/patient/home");
+    // Redirect to /clinician/home when visiting /clinician
+    router.push("/clinician/home");
   }, [router]);
 
   return null;

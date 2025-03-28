@@ -12,19 +12,15 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
         
         <AppBar position="static" sx={{ backgroundColor: "transparent", boxShadow: "none" }}>
             <Toolbar>
-                
+               
                 <Box sx={{ flexGrow: 1 }} />
                 
-                <Button color="inherit" onClick={() => router.push("/patient/home")}>
-                    Home
+                <Button color="inherit" onClick={() => router.push("/clinician/home")}>
+                Home
                 </Button>
-                <Button color="inherit" onClick={() => router.push("/patient/prescriptions")}>
-                    Prescriptions
+                <Button color="inherit" onClick={() => router.push("/clinician/patientSearch")}>
+                Patient Search
                 </Button>
-                <Button color="inherit" onClick={() => router.push("/patient/records")}>
-                    Records
-                </Button>
-                
             </Toolbar>
         </AppBar>
 
