@@ -35,7 +35,7 @@ export default function Login() {
 		if (email.length > 0 && password.length > 0) {
 			
 			try {
-				const resp = await fetch('http://localhost:5000/api/login', {
+				const resp = await fetch('/api/login', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',

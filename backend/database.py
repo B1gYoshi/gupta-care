@@ -1,12 +1,11 @@
 import psycopg2
-from flask import Flask, render_template, request, redirect, url_for, jsonify, make_response
+from flask import Flask, render_template, request, redirect, url_for, jsonify, make_response, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import uuid
 from datetime import datetime, timezone, timedelta
 from functools import wraps
-from flask_cors import cross_origin
 
 app = Flask(__name__)
 
@@ -75,26 +74,26 @@ def get_users():
 @app.route('/api/login', methods=['POST', 'OPTIONS'])
 def login():
 
-    # data = request.get_json()
-    # email = data['email']
-    # password = data['password']
-    # user = User.query.filter_by(email=email).first()
+    data = request.get_json()
+    email = data['email']
+    password = data['password']
+    user = User.query.filter_by(email=email).first()
 
-    # if not user:
-    #     return jsonify({'message': 'Invalid email, user does not exist'}), 401
+    if not user:
+        return jsonify({'message': 'Invalid email, user does not exist'}), 401
 
-    # if not check_password_hash(user.password_hash, password):
-    #     return jsonify({'message': 'Invalid password'}), 401
+    if not check_password_hash(user.password_hash, password):
+        return jsonify({'message': 'Invalid password'}), 401
 
-    # token = jwt.encode({'user_id': user.user_id, 'exp': datetime.now(timezone.utc) + timedelta(hours=1)},
-    #                     app.config['SECRET_KEY'], algorithm="HS256")
+    token = jwt.encode({'user_id': user.user_id, 'exp': datetime.now(timezone.utc) + timedelta(hours=1)},
+                        app.config['SECRET_KEY'], algorithm="HS256")
 
-    # response = jsonify({'message': 'Login successful', 'role': user.role})
-    # response.set_cookie('jwt_token', token, httponly=True) 
+    response = jsonify({'message': 'Login successful', 'role': user.role})
+    response.set_cookie('jwt_token', token, httponly=True) 
 
-    # return response
+    return response
 
-    return jsonify({'message': 'Login successful'})
+    # return jsonify({'message': 'Login successful'})
 
 @app.route('/me', methods=['GET'])
 @token_required
