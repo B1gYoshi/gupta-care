@@ -23,10 +23,9 @@ export default function Login() {
 	};
 
 	useEffect(() => {
-		setAlignment("patient")
 		setEmailError (email.length === 0);
 		setPasswordError (password.length === 0);
-	}, [email, password, alignment])
+	}, [email, password])
 
 	const handleSubmit = async (event: any) => {
 		event.preventDefault();

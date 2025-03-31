@@ -1,10 +1,11 @@
 "use client"
 import Link from "next/link";
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { AppBar, Toolbar, Button, Box } from "@mui/material";
 import { useRouter } from "next/navigation";
 
 export default function PatientLayout({ children }: { children: ReactNode }) {
+    const [name, setName] = useState<string | null>(null);
 
     const router = useRouter();
     useEffect(() => {
@@ -21,7 +22,7 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
                 }
 
                 const data = await resp.json();
-
+                setName(data.full_name)
                 if (data.role !== "clinican") {
                     router.push("/patient/home")
                 }
@@ -40,7 +41,7 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
         
         <AppBar position="static" sx={{ backgroundColor: "transparent", boxShadow: "none" }}>
             <Toolbar>
-               
+                {name && "Welcome " + name + "!"}
                 <Box sx={{ flexGrow: 1 }} />
                 
                 <Button color="inherit" onClick={() => router.push("/clinician/home")}>
