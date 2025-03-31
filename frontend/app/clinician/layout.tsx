@@ -17,6 +17,10 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
                 });
                 
                 if (!resp.ok) {
+                    if (resp.status === 401) {
+                        router.push("/login")
+                    }
+
                     console.log("Bad response: " + resp.statusText)
                     throw new Error;
                 }
