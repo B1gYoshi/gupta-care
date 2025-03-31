@@ -6,6 +6,7 @@ import jwt
 import uuid
 from datetime import datetime, timezone, timedelta
 from functools import wraps
+from flask_cors import cross_origin
 
 app = Flask(__name__)
 
@@ -22,7 +23,6 @@ app.config['SECRET_KEY'] = 'your_secret_key'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 
 db = SQLAlchemy()
 db.init_app(app)
@@ -59,7 +59,6 @@ def token_required(f):
 
     return decorated
 
-#@app.route("/users", methods=["GET"])
 @app.route("/", methods=["GET"])
 def get_users():
     conn = get_db_connection()
@@ -73,28 +72,32 @@ def get_users():
 
     return jsonify([{"id": u[0], "name": u[1], "email": u[2]} for u in users])
 
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST', 'OPTIONS'])
 def login():
 
-    email = request.form['email']
-    password = request.form['password']
-    user = User.query.filter_by(email=email).first()
+    # data = request.get_json()
+    # email = data['email']
+    # password = data['password']
+    # user = User.query.filter_by(email=email).first()
 
-    if not user:
-        return jsonify({'message': 'Invalid email, user does not exist'}), 401
+    # if not user:
+    #     return jsonify({'message': 'Invalid email, user does not exist'}), 401
 
-    if not check_password_hash(user.password_hash, password):
-        return jsonify({'message': 'Invalid password'}), 401
+    # if not check_password_hash(user.password_hash, password):
+    #     return jsonify({'message': 'Invalid password'}), 401
 
-    token = jwt.encode({'user_id': user.user_id, 'exp': datetime.now(timezone.utc) + timedelta(hours=1)},
-                        app.config['SECRET_KEY'], algorithm="HS256")
+    # token = jwt.encode({'user_id': user.user_id, 'exp': datetime.now(timezone.utc) + timedelta(hours=1)},
+    #                     app.config['SECRET_KEY'], algorithm="HS256")
 
-    response = make_response(redirect(url_for('http://localhost:3000/patient' if user.role == "patient" else "http://localhost:3000/clinician")))
-    response.set_cookie('jwt_token', token)
+    # response = jsonify({'message': 'Login successful', 'role': user.role})
+    # response.set_cookie('jwt_token', token, httponly=True) 
 
-    return response
+    # return response
+
+    return jsonify({'message': 'Login successful'})
 
 @app.route('/me', methods=['GET'])
+@token_required
 def me(current_user):
     user_info = {
         'user_id': current_user.user_id,

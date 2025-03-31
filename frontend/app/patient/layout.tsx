@@ -10,7 +10,7 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
     return (
         <div>
         
-        <AppBar position="static" sx={{ backgroundColor: "transparent", boxShadow: "none" }}>
+        <AppBar position="static" sx={{ backgroundColor: "transparent", boxShadow: "none", color:"black"}}>
             <Toolbar>
                 
                 <Box sx={{ flexGrow: 1 }} />
