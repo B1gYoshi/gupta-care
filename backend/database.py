@@ -95,7 +95,7 @@ def login():
 
     # return jsonify({'message': 'Login successful'})
 
-@app.route('/me', methods=['GET'])
+@app.route('/api/me', methods=['GET'])
 @token_required
 def me(current_user):
     user_info = {

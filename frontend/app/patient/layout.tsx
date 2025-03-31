@@ -1,12 +1,46 @@
 "use client"
 import Link from "next/link";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { AppBar, Toolbar, Button, Box } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { responseCookiesToRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
 export default function PatientLayout({ children }: { children: ReactNode }) {
-
     const router = useRouter();
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const resp = await fetch('/api/me', {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+                
+                if (!resp.ok) {
+
+                    if (resp.status === 401) {
+                        router.push("/login")
+                    }
+
+                    console.log("Bad response: " + resp.statusText)
+                    throw new Error;
+                }
+
+                const data = await resp.json();
+
+                if (data.role !== "patient") {
+                    router.push("/clinician/home")
+                }
+
+                console.log(data)
+            } catch (err) {
+                console.log(err);
+            }
+        };
+    
+        fetchData();
+    }, []);
+
+    
     return (
         <div>
         
