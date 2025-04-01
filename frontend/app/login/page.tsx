@@ -69,13 +69,7 @@ export default function Login() {
 	};
 
     return <div className='parent'>
-        <Box
-        component="form"
-        noValidate
-        autoComplete="off"
-        className='loginBox'
-		onSubmit={handleSubmit}
-        >
+		<div className='selectorBox'>
 			<ToggleButtonGroup
 				value={alignment}
 				exclusive
@@ -89,27 +83,40 @@ export default function Login() {
 					Clinician
 				</ToggleButton>
 			</ToggleButtonGroup>
+			<Box sx={{ flexGrow: 1 }} />
+		</div>
+        <Box
+        component="form"
+        noValidate
+        autoComplete="off"
+        className='loginBox'
+		onSubmit={handleSubmit}
+        >
+			
 			<TextField 
 				required 
 				id="outlined-email-input" 
 				label="email" 
-				variant="outlined" 
+				variant="outlined"
+				className='loginTextFields' 
 				onChange={(e) => setEmail(e.target.value)}
 				helperText={emailError ? "Required" : ""}
           		error={emailError}
 			/>
-
+			<Box className='spacer' />
 			<TextField
 				id="outlined-password-input"
 				required
 				label="password"
 				type="password"
+				className='loginTextFields'
 				autoComplete="current-password"
 				onChange={(e) => setPassword(e.target.value)}
 				helperText={passwordError ? "Required" : ""}
           		error={passwordError}
 			/>
-			<button type="submit">
+			<Box className='spacer' />
+			<button type="submit" className='submitButton'>
 				Login
 			</button>
         </Box>
