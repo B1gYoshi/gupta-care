@@ -1,6 +1,13 @@
+"use client";
+import './home.css'
+import dynamic from 'next/dynamic'
+
+const AppointmentCalendar = dynamic(() => import('../../../components/calendar'), { 
+  ssr: false 
+})
+
 export default function Home() {
-    return <div>
-        <h1>This is the patient home page. The calendar will be displayed here</h1>
-    </div>;
+    return (
+        <AppointmentCalendar/>
+    );
 }
-  

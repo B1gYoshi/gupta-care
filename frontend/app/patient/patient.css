@@ -1,0 +1,11 @@
+.contentParent {
+    height: 100%;
+}
+
+.contentChild {
+    height: calc(100vh - var(--navbarHeight));
+}
+
+.appBar {
+    height: --navbarHeight;
+}
