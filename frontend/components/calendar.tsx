@@ -1,35 +1,44 @@
-import { Calendar, momentLocalizer, View, Views } from 'react-big-calendar'
+import { Calendar, momentLocalizer, View } from 'react-big-calendar';
+import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import moment from 'moment'
-import './calendar.css'
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
+const localizer = momentLocalizer(moment);
 
-const localizer = momentLocalizer(moment) 
+type Event = {
+  title: string,
+  start: Date,
+  end: Date,
+  allDay?: boolean
+  resource?: any,
+}
 
-const AppointmentCalendar = (props: any) => {
-    const [currentView, setCurrentView] = useState("week");
-    const allowedViews: View[] = ['month', 'week', 'day'];
-    
-    const { views } = useMemo(() => {
-        return {
-          views: allowedViews,
-        };
-      }, []);
-    
-    return <div className='calendarContainer'>
-        <Calendar
+type Props = {
+  events?: Event[];
+};
+
+const AppointmentCalendar = ({ events }: Props) => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentView, setCurrentView] = useState<View>('week');
+
+  const views: View[] = ['month', 'week', 'day'];
+
+  return (
+    <div className="calendarContainer">
+      <Calendar
         localizer={localizer}
+        date={currentDate}
+        onNavigate={(date) => setCurrentDate(date)} 
+        view={currentView}
+        onView={(view) => setCurrentView(view)}
+        events={events}
         startAccessor="start"
         endAccessor="end"
         views={views}
-        view={currentView as View}
-        onView={(view) => setCurrentView(view)}
         defaultView="week"
-        />
+      />
     </div>
-    
-    
-}
+  );
+};
 
 export default AppointmentCalendar;
