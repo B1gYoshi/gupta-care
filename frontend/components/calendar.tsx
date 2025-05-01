@@ -24,7 +24,7 @@ const AppointmentCalendar = ({ events }: Props) => {
   const views: View[] = ['month', 'week', 'day'];
 
   return (
-    <div className="calendarContainer">
+    // <div className="calendarContainer">
       <Calendar
         localizer={localizer}
         date={currentDate}
@@ -37,7 +37,7 @@ const AppointmentCalendar = ({ events }: Props) => {
         views={views}
         defaultView="week"
       />
-    </div>
+    // </div>
   );
 };
 

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ReactNode, useEffect, useState } from "react";
 import { AppBar, Toolbar, Button, Box } from "@mui/material";
 import { useRouter } from "next/navigation";
+import "./clinician.css"
+
 
 export default function PatientLayout({ children }: { children: ReactNode }) {
     const [name, setName] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
 
                 const data = await resp.json();
                 setName(data.full_name)
-                if (data.role !== "clinican") {
+                if (data.role !== "clinician") {
                     router.push("/patient/home")
                 }
 
@@ -41,9 +43,9 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
     }, []);
 
     return (
-        <div>
+        <div className="contentParent">
         
-        <AppBar position="static" sx={{ backgroundColor: "transparent", boxShadow: "none" }}>
+        <AppBar className="appBar" position="static" sx={{ backgroundColor: "transparent", boxShadow: "none", color: "black" }}>
             <Toolbar>
                 {name && "Welcome " + name + "!"}
                 <Box sx={{ flexGrow: 1 }} />
@@ -58,7 +60,7 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
         </AppBar>
 
         
-        <div>{children}</div>
+        <div className="contentChild">{children}</div>
         </div>
     );
 }

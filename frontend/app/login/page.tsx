@@ -50,15 +50,15 @@ export default function Login() {
 					const errorData = await resp.json();
 					console.error("Login failed:", errorData.message);
 					return;
-				  }
-			
-				  const data = await resp.json();
+				}
+		
+				const data = await resp.json();
 
-				  if (data.role === "patient") {
+				if (data.role === "patient") {
 					router.push("/patient/home");
-				  } else if (data.role === "clinician") {
+				} else if (data.role === "clinician") {
 					router.push("/clinician/home");
-				  }
+				}
 			} catch (err) {
 				console.log(err)
 			}

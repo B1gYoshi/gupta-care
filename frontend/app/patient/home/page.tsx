@@ -8,6 +8,8 @@ const AppointmentCalendar = dynamic(() => import('../../../components/calendar')
 
 export default function Home() {
     return (
-        <AppointmentCalendar/>
+        <div className='calendarHolder'>
+          <AppointmentCalendar/>
+        </div>
     );
 }
