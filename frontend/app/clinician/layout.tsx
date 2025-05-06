@@ -1,12 +1,25 @@
 "use client"
 import Link from "next/link";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, createContext, useContext } from "react";
 import { AppBar, Toolbar, Button, Box } from "@mui/material";
 import { useRouter } from "next/navigation";
 import "./clinician.css"
 
+export type ClinicianInfo = {
+    user_id: number;
+    username: string;
+    full_name: string;
+    email: string;
+    role: string;
+    created_at: string;
+};
+
+export const ClinicianContext = createContext<ClinicianInfo | null>(null);
+
+export const useClinician = () => useContext(ClinicianContext);
 
 export default function PatientLayout({ children }: { children: ReactNode }) {
+    const [clinician, setClinician] = useState<ClinicianInfo | null>(null);
     const [name, setName] = useState<string | null>(null);
 
     const router = useRouter();
@@ -33,7 +46,7 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
                     router.push("/patient/home")
                 }
 
-                console.log(data)
+                setClinician(data);
             } catch (err) {
                 console.log(err);
             }
@@ -43,24 +56,26 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
     }, []);
 
     return (
-        <div className="contentParent">
-        
-        <AppBar className="appBar" position="static" sx={{ backgroundColor: "transparent", boxShadow: "none", color: "black" }}>
-            <Toolbar>
-                {name && "Welcome " + name + "!"}
-                <Box sx={{ flexGrow: 1 }} />
-                
-                <Button color="inherit" onClick={() => router.push("/clinician/home")}>
-                Home
-                </Button>
-                <Button color="inherit" onClick={() => router.push("/clinician/patientSearch")}>
-                Patient Search
-                </Button>
-            </Toolbar>
-        </AppBar>
+        <ClinicianContext.Provider value={clinician}>
+            <div className="contentParent">
+            
+                <AppBar className="appBar" position="static" sx={{ backgroundColor: "transparent", boxShadow: "none", color: "black" }}>
+                    <Toolbar>
+                        {name && "Welcome " + name + "!"}
+                        <Box sx={{ flexGrow: 1 }} />
+                        
+                        <Button color="inherit" onClick={() => router.push("/clinician/home")}>
+                        Home
+                        </Button>
+                        <Button color="inherit" onClick={() => router.push("/clinician/patientSearch")}>
+                        Patient Search
+                        </Button>
+                    </Toolbar>
+                </AppBar>
 
-        
-        <div className="contentChild">{children}</div>
-        </div>
+                
+                <div className="contentChild">{children}</div>
+            </div>
+        </ClinicianContext.Provider>
     );
 }
