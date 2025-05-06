@@ -33,9 +33,9 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
                 
                 if (!resp.ok) {
 
-                    if (resp.status === 401) {
+                    if (resp.status === 401 || resp.status === 403) {
                         router.push("/login")
-                    }
+                    } 
 
                     console.log("Bad response: " + resp.statusText)
                     throw new Error;

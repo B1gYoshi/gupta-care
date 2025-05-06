@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 const localizer = momentLocalizer(moment);
 
-type Event = {
+export type Event = {
   title: string,
   start: Date,
   end: Date,
@@ -15,6 +15,7 @@ type Event = {
 
 type Props = {
   events?: Event[];
+  isClinician?: boolean;
 };
 
 const AppointmentCalendar = ({ events }: Props) => {

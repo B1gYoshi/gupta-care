@@ -37,6 +37,34 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False)
     created_at = db.Column(db.TIMESTAMP, server_default=db.func.current_timestamp())
 
+class Appointments(db.Model):
+    __tablename__ = 'appointments'
+
+    appointment_id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='CASCADE', onupdate='NO ACTION'))
+    clinician_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='CASCADE', onupdate='NO ACTION'))
+    appointment_datetime = db.Column(db.DateTime, nullable=False)
+    location = db.Column(db.Text)
+    reason = db.Column(db.Text)
+    status = db.Column(
+        db.String(20),
+        nullable=False,
+        default='scheduled'
+    )
+    created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+
+    # Optional: relationships to access user details from appointment
+    patient = db.relationship('User', foreign_keys=[patient_id], backref='patient_appointments')
+    clinician = db.relationship('User', foreign_keys=[clinician_id], backref='clinician_appointments')
+
+    __table_args__ = (
+        db.CheckConstraint(
+            "status IN ('scheduled', 'cancelled', 'completed')",
+            name='appointments_status_check'
+        ),
+    )
+
+
 def get_db_connection():
     return psycopg2.connect(**DB_CONFIG)
 
@@ -108,6 +136,36 @@ def me(current_user):
     }
 
     return jsonify(user_info)
+
+@app.route('/api/appointments', methods=['GET'])
+@token_required
+def appointments(current_user):
+    try:
+        user_appointments = None
+        if current_user.role == 'patient':
+            user_appointments = Appointments.query.filter_by(patient_id=current_user.user_id).all()
+        elif current_user.role == 'clinician':
+            user_appointments = Appointments.query.filter_by(clinician_id=current_user.user_id).all()
+
+        result = []
+        for appt in user_appointments:
+            result.append({
+                'appointment_id': appt.appointment_id,
+                'patient_id': appt.patient_id,
+                'clinician_id': appt.clinician_id,
+                'appointment_datetime': appt.appointment_datetime.isoformat(),
+                'location': appt.location,
+                'reason': appt.reason,
+                'status': appt.status,
+                'created_at': appt.created_at.isoformat() if appt.created_at else None
+            })
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        print(f"Error fetching appointments: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+    
 
 if __name__ == "__main__":
     app.run(debug=True)
