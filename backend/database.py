@@ -170,20 +170,26 @@ def appointments(current_user):
 @token_required
 def createAppointment(current_user):
     if current_user.role != 'clinician':
-        return jsonify({"error": "Unauthorized"}), 403
+        return jsonify({"message": "Unauthorized"}), 403
 
     data = request.get_json()
     patient = User.query.filter_by(email=data['email']).first()
 
-    appointment_start = datetime.fromisoformat(data['date'])
+    if patient == None:
+        return jsonify({"message": "Patient not found"}), 404
 
-    new_appointment = {
-        'patient_id': patient.user_id,
-        'clinician_id': current_user.user_id,
-        'appointment_datetime': appointment_start,
-        'reason': data['title'],
-        'status': 'scheduled'
-    }
+    try :
+        appointment_start = datetime.fromisoformat(data['date'])
+    except Exception as e:
+        return jsonify({"message": "Error with the date"}), 414
+
+    new_appointment = Appointments(
+        patient_id=patient.user_id,
+        clinician_id=current_user.user_id,
+        appointment_datetime=appointment_start,
+        reason=data['title'],
+        status='scheduled'
+    )
 
     db.session.add(new_appointment)
     db.session.commit()
