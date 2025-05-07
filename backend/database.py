@@ -166,6 +166,33 @@ def appointments(current_user):
         print(f"Error fetching appointments: {e}")
         return jsonify({'error': 'Internal server error'}), 500
     
+@app.route('/api/appointments', methods=['POST'])
+@token_required
+def createAppointment(current_user):
+    if current_user.role != 'clinician':
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data = request.get_json()
+    patient = User.query.filter_by(email=data['email']).first()
+
+    appointment_start = datetime.fromisoformat(data['date'])
+
+    new_appointment = {
+        'patient_id': patient.user_id,
+        'clinician_id': current_user.user_id,
+        'appointment_datetime': appointment_start,
+        'reason': data['title'],
+        'status': 'scheduled'
+    }
+
+    db.session.add(new_appointment)
+    db.session.commit()
+
+    return jsonify({"message": "Appointment created successfully"}), 200
+
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
