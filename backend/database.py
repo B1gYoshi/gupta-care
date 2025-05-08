@@ -6,6 +6,7 @@ import jwt
 import uuid
 from datetime import datetime, timezone, timedelta
 from functools import wraps
+from sqlalchemy import or_
 
 app = Flask(__name__)
 
@@ -136,6 +137,31 @@ def me(current_user):
     }
 
     return jsonify(user_info)
+
+@app.route('/api/patients', methods=['GET'])
+@token_required
+def search_patients(current_user):
+    # only clinicians can search
+    if current_user.role != 'clinician':
+        return jsonify({'message': 'Access denied'}), 403
+
+    query = request.args.get('q', '').strip()
+    if not query:
+        return jsonify([])
+
+    matches = User.query.filter_by(role='patient') \
+        .filter(or_(
+            User.full_name.ilike(f"%{query}%"),
+            User.email.ilike(f"%{query}%")
+        )).all()
+
+    results = [{
+        'user_id': p.user_id,
+        'full_name': p.full_name,
+        'email': p.email
+    } for p in matches]
+
+    return jsonify(results)
 
 @app.route('/api/prescriptions', methods=['GET'])
 @token_required
