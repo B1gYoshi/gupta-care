@@ -1,5 +1,24 @@
-.calendarContainer {
-    height: 100%;
-    
+.Cc {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center;
+    padding-bottom: 15px;
+
 }
+.rbc-calendar {
+    background-color: white;
+    padding: 10px;
+    border-radius: 1px;
+  }
+
+.createButton {
+    height: 25px;
+    color: rgb(25, 48, 48);
+}
+
+.calendarRoot {
+    height: 100%;
+}
+
 
