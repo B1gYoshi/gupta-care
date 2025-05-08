@@ -134,6 +134,13 @@ def login():
     response.set_cookie('jwt_token', token, httponly=True)
     return response
 
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    response = jsonify({'message': 'Logout successful'})
+    response.set_cookie('jwt_token', '', expires=0, httponly=True)
+    return response
+
+
 @app.route('/api/signup', methods=['POST'])
 def signup():
     data = request.get_json()
