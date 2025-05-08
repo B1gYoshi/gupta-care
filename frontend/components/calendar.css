@@ -6,9 +6,11 @@
     padding-bottom: 15px;
 
 }
-.calendarStyle {
+.rbc-calendar {
     background-color: white;
-}
+    padding: 10px;
+    border-radius: 1px;
+  }
 
 .createButton {
     height: 25px;
