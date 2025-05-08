@@ -2,9 +2,11 @@
 import './home.css'
 import dynamic from 'next/dynamic'
 import { usePatient } from "../layout";
+import { useEffect, useState } from 'react';
+import { Event } from '../../../components/calendar'
 
 const AppointmentCalendar = dynamic(() => import('../../../components/calendar'), { 
-  ssr: false 
+  	ssr: false 
 })
 
 export default function Home() {
@@ -12,7 +14,7 @@ export default function Home() {
 
     return (
         <div className='calendarHolder'>
-          <AppointmentCalendar/>
+          	<AppointmentCalendar isClinician={false}/>
         </div>
     );
 }
