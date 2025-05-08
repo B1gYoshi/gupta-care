@@ -2,6 +2,7 @@ import { Calendar, momentLocalizer, View } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { useState } from 'react';
+import "./calendar.css"
 
 const localizer = momentLocalizer(moment);
 
@@ -36,6 +37,7 @@ const AppointmentCalendar = ({ events }: Props) => {
         endAccessor="end"
         views={views}
         defaultView="week"
+        className="calenderStyle"
       />
     // </div>
   );
