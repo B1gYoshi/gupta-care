@@ -1,12 +1,21 @@
 import { Calendar, momentLocalizer, View } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { useState } from 'react';
-import "./calendar.css"
+import { useEffect, useState } from 'react';
+import './calendar.css'
+
+import {
+	Modal,
+	Box,
+	Button,
+	Typography,
+	TextField,
+	Stack,
+  } from '@mui/material';
 
 const localizer = momentLocalizer(moment);
 
-type Event = {
+export type Event = {
   title: string,
   start: Date,
   end: Date,
@@ -15,32 +24,180 @@ type Event = {
 }
 
 type Props = {
-  events?: Event[];
+  isClinician?: boolean;
 };
 
-const AppointmentCalendar = ({ events }: Props) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [currentView, setCurrentView] = useState<View>('week');
+const AppointmentCalendar = ({ isClinician }: Props) => {
+	const [currentDate, setCurrentDate] = useState(new Date());
+	const [currentView, setCurrentView] = useState<View>('week');
+	
+	const [appointmentTitle, setAppointmentTitle] = useState<String>('')
+	const [patientEmail, setPatientEmail] = useState<String>('')
+	const [appointmentStart, setAppointmentStart] = useState<String>('')
 
-  const views: View[] = ['month', 'week', 'day'];
+	const views: View[] = ['month', 'week', 'day'];
 
-  return (
-    // <div className="calendarContainer">
-      <Calendar
-        localizer={localizer}
-        date={currentDate}
-        onNavigate={(date) => setCurrentDate(date)} 
-        view={currentView}
-        onView={(view) => setCurrentView(view)}
-        events={events}
-        startAccessor="start"
-        endAccessor="end"
-        views={views}
-        defaultView="week"
-        className="calenderStyle"
-      />
-    // </div>
-  );
+	const [openModal, setOpenModal] = useState(false);
+	const [openResultModal, setOpenResultModal] = useState(false)
+
+	const [appointmentStatus, setAppointmentStatus] = useState<Number>(0)
+	const [appointmentCreationMessage, setAppointmentCreationMessage] = useState<String>('')
+
+	const handleOpen = () => setOpenModal(true);
+	const handleClose = () => setOpenModal(false);
+
+	const handleResultModalClose = () => setOpenResultModal(false);
+
+	const createAppointment = async (e: any) => {
+		const resp = await fetch('/api/appointments', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			credentials: 'include',
+			body: JSON.stringify({
+				title: appointmentTitle,
+				email: patientEmail,
+				date: appointmentStart,
+			}),
+		})
+
+		const data = await resp.json();
+
+		setAppointmentStatus(resp.status)
+		setAppointmentCreationMessage(data.message)
+
+		setOpenResultModal(true)
+
+		if (resp.ok) {
+			setOpenModal(false)
+		}
+	}
+
+	const [events, setEvents] = useState<Event[] | undefined>(undefined);
+
+    const fetchAppointments = async () => {
+        try {
+			const resp = await fetch('/api/appointments', {
+				method: 'GET',
+				credentials: 'include',
+			});
+
+			if (!resp.ok) {
+
+				console.log("Bad response: " + resp.statusText)
+				throw new Error;
+			}
+
+			const data = await resp.json();
+			setEvents(data.map((dbEvent: any): Event => {
+
+				const startTime = new Date(dbEvent.appointment_datetime)
+
+				return {
+				title: dbEvent.reason,
+				start: startTime,
+				end: new Date(startTime.getTime() + 60 * 60 * 1000)
+				}
+
+			}))
+
+        } catch (err) {
+          console.log(err)
+        }
+    }
+
+    useEffect(() => {
+		fetchAppointments()
+    }, [openResultModal])
+
+	return (
+		<div className='calendarRoot'>
+			{isClinician && (
+				<div className='Cc'> 
+					<button className='createButton' onClick={handleOpen}> Create Appointment Button </button>
+				</div>
+			)}
+			<Calendar
+				localizer={localizer}
+				date={currentDate}
+				onNavigate={(date) => setCurrentDate(date)} 
+				view={currentView}
+				onView={(view) => setCurrentView(view)}
+				events={events}
+				startAccessor="start"
+				endAccessor="end"
+				views={views}
+				defaultView="week"
+			/>
+			<Modal open={openModal} onClose={handleClose}>
+				<Box
+				sx={{
+					position: 'absolute',
+					top: '50%',
+					left: '50%',
+					transform: 'translate(-50%, -50%)',
+					bgcolor: 'background.paper',
+					boxShadow: 24,
+					p: 4,
+					width: 400,
+					borderRadius: 2,
+				}}
+				>
+				<Typography variant="h6" gutterBottom>
+					New Appointment
+				</Typography>
+
+					<Stack spacing={2}>
+						<TextField
+						label="Appointment Title"
+						variant="outlined"
+						fullWidth
+						required
+						onChange={(e) => setAppointmentTitle(e.target.value)}
+						/>
+						<TextField
+						label="Patient Email"
+						type="email"
+						variant="outlined"
+						fullWidth
+						required
+						onChange={(e) => setPatientEmail(e.target.value)}
+						/>
+						<TextField
+						label="Start Date and Time"
+						type="datetime-local"
+						InputLabelProps={{ shrink: true }}
+						fullWidth
+						required
+						onChange={(e) => setAppointmentStart(e.target.value)}
+						/>
+
+						<Button variant="contained" fullWidth onClick={createAppointment}>
+							Create Appointment
+						</Button>
+					</Stack>
+				</Box>
+			</Modal>
+			<Modal open={openResultModal} onClose={handleResultModalClose} >
+				<Box
+				sx={{
+					position: 'absolute',
+					top: '50%',
+					left: '50%',
+					transform: 'translate(-50%, -50%)',
+					bgcolor: 'background.paper',
+					boxShadow: 24,
+					p: 4,
+					width: 400,
+					borderRadius: 2,
+				}}>
+					<div>{appointmentStatus.toString()}</div>
+					<div>{appointmentCreationMessage}</div>
+				</Box>
+			</Modal>
+		</div>
+	);
 };
 
 export default AppointmentCalendar;
