@@ -137,6 +137,39 @@ def me(current_user):
 
     return jsonify(user_info)
 
+@app.route('/api/prescriptions', methods=['GET'])
+@token_required
+def get_prescriptions(current_user):
+    if current_user.role != 'patient':
+        return jsonify({'message': 'Access denied'}), 403
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT medication_name, dosage, frequency, duration, issued_at
+        FROM prescriptions
+        WHERE patient_id = %s
+        ORDER BY issued_at DESC
+    """, (current_user.user_id,))
+    
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    prescriptions = [
+        {
+            "medication_name": r[0],
+            "dosage": r[1],
+            "frequency": r[2],
+            "duration": r[3],
+            "issued_at": r[4]
+        }
+        for r in rows
+    ]
+
+    return jsonify(prescriptions)
+
 @app.route('/api/appointments', methods=['GET'])
 @token_required
 def appointments(current_user):
