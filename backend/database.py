@@ -7,6 +7,10 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from functools import wraps
 
+from apscheduler.schedulers.background import BackgroundScheduler
+import smtplib
+from email.mime.text import MIMEText
+
 app = Flask(__name__)
 
 DB_CONFIG = {
@@ -182,16 +186,17 @@ def appointments(current_user):
 
         result = []
         for appt in user_appointments:
-            result.append({
-                'appointment_id': appt.appointment_id,
-                'patient_id': appt.patient_id,
-                'clinician_id': appt.clinician_id,
-                'appointment_datetime': appt.appointment_datetime.isoformat(),
-                'location': appt.location,
-                'reason': appt.reason,
-                'status': appt.status,
-                'created_at': appt.created_at.isoformat() if appt.created_at else None
-            })
+            if (appt.status != "canceled"):
+                result.append({
+                    'appointment_id': appt.appointment_id,
+                    'patient_id': appt.patient_id,
+                    'clinician_id': appt.clinician_id,
+                    'appointment_datetime': appt.appointment_datetime.isoformat(),
+                    'location': appt.location,
+                    'reason': appt.reason,
+                    'status': appt.status,
+                    'created_at': appt.created_at.isoformat() if appt.created_at else None
+                })
 
         return jsonify(result), 200
 
@@ -229,6 +234,60 @@ def createAppointment(current_user):
 
     return jsonify({"message": "Appointment created successfully"}), 200
 
+
+def send_email_reminder(to_email, name, appt_datetime):
+    body = f"""
+    Hello {name},
+
+    This is a reminder for your upcoming appointment on {appt_datetime.strftime('%A, %B %d at %I:%M %p')}.
+    
+    You can cancel or reschedule your appointment at this number:
+    +1 (999)-999-999
+
+    Thank you,
+    Gupta Care Team
+    """
+    msg = MIMEText(body)
+    msg['Subject'] = "📅 Upcoming Appointment Reminder"
+    msg['From'] = "aaryan.m003@gmail.com"
+    msg['To'] = to_email
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login("aaryan.m003@gmail.com", "amaa yghi fpzh jcys")  # use app password if using Gmail
+            server.send_message(msg)
+            print(f"Reminder sent to {to_email}")
+    except Exception as e:
+        print(f"Failed to send email to {to_email}: {e}")
+
+def check_appointments_and_send_emails():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT a.appointment_datetime, u.full_name, u.email
+        FROM appointments a
+        JOIN users u ON a.patient_id = u.user_id
+        WHERE a.status = 'scheduled'
+        AND DATE(a.appointment_datetime) = CURRENT_DATE + INTERVAL '1 days'
+    """)
+    rows = cur.fetchall()
+    print(f"[DEBUG] Found {len(rows)} upcoming appointment(s) for email reminders.")
+    for r in rows:
+        print(f"[DEBUG] Sending to: {r[2]} at {r[0]}")
+
+    cur.close()
+    conn.close()
+
+    for appt_datetime, full_name, email in rows:
+        send_email_reminder(email, full_name, appt_datetime)
+
+# Schedule the job
+scheduler = BackgroundScheduler()
+scheduler.add_job(check_appointments_and_send_emails, 'cron', hour=8)  # Daily at 8AM
+scheduler.start()
+check_appointments_and_send_emails()
 
 
 
