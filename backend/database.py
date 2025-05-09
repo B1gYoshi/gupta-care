@@ -27,7 +27,7 @@ CORS(app, supports_credentials=True, origins=["http://localhost:3000"])  # Allow
 
 # Database Config
 DB_CONFIG = {
-    "dbname": "gupta-care",
+    "dbname": "guptaCare",
     "user": "joshiMembers",
     "password": "joshiBoss",
     "host": "localhost",
@@ -416,7 +416,8 @@ def check_appointments_and_send_emails():
     conn.close()
 
     for appt_datetime, full_name, email in rows:
-        send_email_reminder(email, full_name, appt_datetime)
+        # send_email_reminder(email, full_name, appt_datetime)
+        pass
 
 # Schedule the job
 scheduler = BackgroundScheduler()
