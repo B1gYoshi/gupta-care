@@ -134,6 +134,7 @@ export default function Login() {
 				exclusive
 				onChange={handleAlignment}
 				aria-label="text alignment"
+				className='toggle'
 			>
 				<ToggleButton value="patient">
 					Patient

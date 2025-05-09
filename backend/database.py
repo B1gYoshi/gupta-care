@@ -454,7 +454,8 @@ def check_appointments_and_send_emails():
     conn.close()
 
     for appt_datetime, full_name, email in rows:
-        send_email_reminder(email, full_name, appt_datetime)
+        # send_email_reminder(email, full_name, appt_datetime)
+        pass
 
 # Schedule the job
 scheduler = BackgroundScheduler()

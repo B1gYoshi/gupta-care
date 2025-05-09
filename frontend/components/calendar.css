@@ -10,11 +10,19 @@
     background-color: white;
     padding: 10px;
     border-radius: 1px;
+    padding: 25px;
+
+    border-radius: 5px;
   }
 
 .createButton {
     height: 25px;
+    width: 200px;
     color: rgb(25, 48, 48);
+
+    border: solid 1px;
+    border-color: black;
+    border-radius: 5px;
 }
 
 .calendarRoot {
