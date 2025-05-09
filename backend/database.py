@@ -134,6 +134,44 @@ def login():
     response.set_cookie('jwt_token', token, httponly=True)
     return response
 
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    response = jsonify({'message': 'Logout successful'})
+    response.set_cookie('jwt_token', '', expires=0, httponly=True)
+    return response
+
+
+@app.route('/api/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    role = data.get('role')  # should be 'patient' or 'clinician'
+
+    # Check if user already exists
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        return jsonify({'message': 'Email already in use'}), 409
+
+    if role not in ['patient', 'clinician']:
+        return jsonify({'message': 'Invalid role'}), 400
+
+    hashed_password = generate_password_hash(password)
+
+    new_user = User(
+        username=email.split('@')[0],  # default username
+        email=email,
+        password_hash=hashed_password,
+        full_name="New User",  # or you can allow frontend to send full name
+        role=role
+    )
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({'message': 'Signup successful'}), 201
+
+
 @app.route('/api/me', methods=['GET'])
 @token_required
 def me(current_user):

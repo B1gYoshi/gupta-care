@@ -55,6 +55,19 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
         fetchData();
     }, []);
 
+    const handleLogout = async () => {
+        try {
+          await fetch('/api/logout', {
+            method: 'POST',
+            credentials: 'include'
+          });
+          router.push('/login');
+        } catch (err) {
+          console.error('Logout failed', err);
+        }
+      };
+      
+
     
     return (
         <PatientContext.Provider value={patient}>
@@ -74,7 +87,10 @@ export default function PatientLayout({ children }: { children: ReactNode }) {
                         <Button color="inherit" onClick={() => router.push("/patient/records")}>
                             Records
                         </Button>
-                        
+                        <Button color="inherit" onClick={handleLogout}>
+                            Logout
+                        </Button>
+
                     </Toolbar>
                 </AppBar>
                 
