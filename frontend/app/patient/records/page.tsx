@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   Box,
@@ -108,15 +108,21 @@ export default function Records() {
   };
 
   return (
-    <Box sx={{ p: 4, maxWidth: '900px', margin: 'auto' }}>
-      <Typography variant="h4" align="center" gutterBottom>
-        Upload New Record
-      </Typography>
-
-      <Box component={Paper} sx={{ p: 4, maxWidth: '900px', margin: 'auto', border: 1, borderColor: 'black' }}>
+    <Box sx={{ px: 2, py: 6, maxWidth: '800px', margin: 'auto' }}>
+      {/* Upload Box */}
+      <Paper sx={{
+        backgroundColor: 'white',
+        padding: 4,
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+        mb: 6
+      }}>
+        <Typography variant="h5" gutterBottom sx={{ borderBottom: '1px solid #ccc', pb: 1 }}>
+          <b>Upload New Record</b>
+        </Typography>
 
         <input type="file" onChange={handleFileChange} />
-        <Box sx={{ my: 2 }}>
+        <Box sx={{ my: 2}}>
           <FormControl fullWidth>
             <InputLabel id="record-type-label">Record Type</InputLabel>
             <Select
@@ -143,45 +149,52 @@ export default function Records() {
             <Alert severity={statusType}>{statusMessage}</Alert>
           </Box>
         )}
-      </Box>
+      </Paper>
 
+      {/* Records Box */}
+      <Paper sx={{
+        backgroundColor: 'white',
+        padding: 4,
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+      }}>
+        <Typography variant="h5" gutterBottom sx={{ borderBottom: '1px solid #ccc', pb: 1 }}>
+          <b>My Medical Records</b>
+        </Typography>
 
-      <Typography variant="h4" align="center" gutterBottom sx={{ mt: 8 }}>
-        My Medical Records
-      </Typography>
-
-      {records.length === 0 ? (
-        <Typography>No records found.</Typography>
-      ) : (
-        <TableContainer component={Paper} sx={{ border: '1px solid black' }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>#</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Uploaded</TableCell>
-                <TableCell>Document</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {records.map((record, index) => (
-                <TableRow key={record.record_id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{record.record_type}</TableCell>
-                  <TableCell>{record.description}</TableCell>
-                  <TableCell>{new Date(record.uploaded_at).toLocaleString()}</TableCell>
-                  <TableCell>
-                    <a href={record.document_link} target="_blank" rel="noopener noreferrer">
-                      View File
-                    </a>
-                  </TableCell>
+        {records.length === 0 ? (
+          <Typography>No records found.</Typography>
+        ) : (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>#</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Uploaded</TableCell>
+                  <TableCell>Document</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+              </TableHead>
+              <TableBody>
+                {records.map((record, index) => (
+                  <TableRow key={record.record_id}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{record.record_type}</TableCell>
+                    <TableCell>{record.description}</TableCell>
+                    <TableCell>{new Date(record.uploaded_at).toLocaleString()}</TableCell>
+                    <TableCell>
+                      <a href={record.document_link} target="_blank" rel="noopener noreferrer">
+                        View File
+                      </a>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Paper>
     </Box>
   );
 }
