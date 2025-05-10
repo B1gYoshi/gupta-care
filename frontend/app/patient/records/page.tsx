@@ -110,13 +110,10 @@ export default function Records() {
   return (
     <Box sx={{ p: 4, maxWidth: '900px', margin: 'auto' }}>
       <Typography variant="h4" align="center" gutterBottom>
-        Patient Records
+        Upload New Record
       </Typography>
 
-      <Box component={Paper} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          Upload a new medical record
-        </Typography>
+      <Box component={Paper} sx={{ p: 4, maxWidth: '900px', margin: 'auto', border: 1, borderColor: 'black' }}>
 
         <input type="file" onChange={handleFileChange} />
         <Box sx={{ my: 2 }}>
@@ -148,14 +145,15 @@ export default function Records() {
         )}
       </Box>
 
-      <Typography variant="h6" gutterBottom>
+
+      <Typography variant="h4" align="center" gutterBottom sx={{ mt: 8 }}>
         My Medical Records
       </Typography>
 
       {records.length === 0 ? (
         <Typography>No records found.</Typography>
       ) : (
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} sx={{ border: '1px solid black' }}>
           <Table>
             <TableHead>
               <TableRow>

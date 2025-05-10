@@ -27,7 +27,7 @@ CORS(app, supports_credentials=True, origins=["http://localhost:3000"])  # Allow
 
 # Database Config
 DB_CONFIG = {
-    "dbname": "guptaCare",
+    "dbname": "gupta-care",
     "user": "joshiMembers",
     "password": "joshiBoss",
     "host": "localhost",
