@@ -69,7 +69,8 @@ export default function PatientPrescriptions() {
           padding:        "30px",
           borderRadius:   "12px",
           boxShadow:      "0 4px 12px rgba(0,0,0,0.15)",
-          width:          "600px",
+          width:           "100%",
+          maxWidth:        "800px",
         }}
       >
         <h2
