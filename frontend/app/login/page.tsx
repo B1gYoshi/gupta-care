@@ -76,8 +76,6 @@ export default function Login() {
 				console.log("Signup successful");
 				setSignupModalOpen(false);
 	
-				// Optional: auto login or redirect
-				// router.push(alignment === 'patient' ? '/patient/home' : '/clinician/home');
 			} catch (err) {
 				console.error(err);
 			}
@@ -201,7 +199,7 @@ export default function Login() {
 				<form>
 					<TextField
 						required
-						id="signup-email"
+						data-testid="signup-email"
 						label="email"
 						variant="outlined"
 						className="loginTextFields"
@@ -213,7 +211,7 @@ export default function Login() {
 
 					<TextField
 						required
-						id="signup-retype-email"
+						data-testid="signup-retype-email"
 						label="retype email"
 						variant="outlined"
 						className="loginTextFields"
@@ -225,7 +223,7 @@ export default function Login() {
 
 					<TextField
 						required
-						id="signup-password"
+						data-testid="signup-password"
 						label="password"
 						type="password"
 						variant="outlined"
@@ -238,7 +236,7 @@ export default function Login() {
 
 					<TextField
 						required
-						id="signup-retype-password"
+						data-testid="signup-retype-password"
 						label="retype password"
 						type="password"
 						variant="outlined"
