@@ -442,6 +442,28 @@ def createAppointment(current_user):
 
     return jsonify({"message": "Appointment created successfully"}), 200
 
+@app.route('/api/appointments/cancel', methods=['DELETE'])
+@token_required
+def cancel_appointment(current_user):
+    data = request.get_json()
+    appointment_title = data.get('appointmentTitle')
+
+    if not appointment_title:
+        return jsonify({"message": "Appointment title is required"}), 400
+
+    # Find the appointment based on the title
+    appointment = Appointments.query.filter_by(reason=appointment_title, status='scheduled').first()
+
+    if not appointment:
+        return jsonify({"message": "Appointment not found or already cancelled"}), 404
+
+    if appointment.patient_id != current_user.user_id and appointment.clinician_id != current_user.user_id:
+        return jsonify({"message": "Unauthorized to cancel this appointment"}), 403
+
+    db.session.delete(appointment)
+    db.session.commit()
+
+    return jsonify({"message": "Appointment successfully cancelled"}), 200
 
 def send_email_reminder(to_email, name, appt_datetime):
     body = f"""

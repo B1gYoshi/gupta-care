@@ -11,6 +11,10 @@ import {
 	Typography,
 	TextField,
 	Stack,
+	FormControl,
+	InputLabel,
+	Select,
+	MenuItem,
   } from '@mui/material';
 
 const localizer = momentLocalizer(moment);
@@ -75,6 +79,7 @@ const AppointmentCalendar = ({ isClinician }: Props) => {
 	}
 
 	const [events, setEvents] = useState<Event[] | undefined>(undefined);
+	const [selectedAppointment, setSelectedAppointment] = useState<string>('');
 
     const fetchAppointments = async () => {
         try {
@@ -107,6 +112,30 @@ const AppointmentCalendar = ({ isClinician }: Props) => {
         }
     }
 
+	const cancelAppointment = async () => {
+		if (!selectedAppointment) {
+		  return;
+		}
+
+		const resp = await fetch(`/api/appointments/cancel`, {
+		  	method: 'DELETE',
+		  	headers: {
+			'Content-Type': 'application/json',
+			},
+			credentials: 'include',
+			body: JSON.stringify({
+				appointmentTitle: selectedAppointment
+			}),
+		});
+	
+		const data = await resp.json();
+	
+		setAppointmentStatus(resp.status);
+		setAppointmentCreationMessage(data.message);
+	
+		setOpenResultModal(true);
+	  }
+
     useEffect(() => {
 		fetchAppointments()
     }, [openResultModal])
@@ -118,6 +147,44 @@ const AppointmentCalendar = ({ isClinician }: Props) => {
 					<button className='createButton' onClick={handleOpen}> Create Appointment Button </button>
 				</div>
 			)}
+			<Box
+				sx={{
+					"display": "flex",
+					"flex-direction": "row",
+					"justify-content": "center",
+					"align-items": "center",
+					"padding-bottom": "15px"
+				}}
+
+			>
+				<FormControl>
+					<InputLabel >Select Appointment</InputLabel>
+					<Select
+					value={selectedAppointment}
+					label="Select Appointment"
+					onChange={(e) => setSelectedAppointment(e.target.value)}
+					sx={{
+						"height": "40px",
+						"width": "150px"
+					}}
+					>
+					{events?.map((event) => (
+						<MenuItem key={event.title} value={event.title}>
+							{event.title}
+						</MenuItem>
+					))}
+					</Select>
+				</FormControl>
+				<Button
+					variant="contained"
+					onClick={cancelAppointment}
+					sx={{
+						"height": "40px"
+					}}
+				>
+					Cancel Appointment
+				</Button>
+			</Box>
 			<Calendar
 				localizer={localizer}
 				date={currentDate}
