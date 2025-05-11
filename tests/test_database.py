@@ -1,4 +1,6 @@
 import pytest
+import jwt
+from datetime import datetime, timezone, timedelta
 from sqlalchemy import text
 from backend.database import app, db, User
 from werkzeug.security import generate_password_hash
@@ -83,3 +85,66 @@ def test_get_users(client):
     assert response.status_code == 200
     data = response.get_json()
     assert any(u['email'] == 'user@test.com' for u in data)
+
+def test_logout(client):
+    response = client.post('/api/logout')
+    assert response.status_code == 200
+    assert b'Logout successful' in response.data
+
+
+def test_search_patients_unauthorized(client):
+    with app.app_context():
+        user = User(username='patient', email='patient@example.com', full_name='Patient User',
+                    password_hash=generate_password_hash('test'), role='patient')
+        db.session.add(user)
+        db.session.commit()
+        token = jwt.encode({'user_id': user.user_id, 'exp': datetime.now(timezone.utc) + timedelta(hours=1)},
+                           app.config['SECRET_KEY'], algorithm="HS256")
+
+    client.set_cookie('jwt_token', token)
+    response = client.get('/api/patients?q=foo')
+
+    assert response.status_code == 403  # Unauthorized for non-clinician
+
+def test_create_appointment(client):
+    with app.app_context():
+        clinician = User(username='doc1', email='doc1@example.com', full_name='Dr. One',
+                         password_hash=generate_password_hash('docpass'), role='clinician')
+        patient = User(username='pat1', email='pat1@example.com', full_name='Patient One',
+                       password_hash=generate_password_hash('patpass'), role='patient')
+        db.session.add_all([clinician, patient])
+        db.session.commit()
+        token = jwt.encode({'user_id': clinician.user_id, 'exp': datetime.now(timezone.utc) + timedelta(hours=1)},
+                           app.config['SECRET_KEY'], algorithm="HS256")
+
+    client.set_cookie('jwt_token', token)
+    response = client.post('/api/appointments', json={
+        'email': 'pat1@example.com',
+        'title': 'Checkup',
+        'date': datetime.now().isoformat()
+    })
+
+    assert response.status_code == 200
+
+
+def test_create_medical_record(client):
+    with app.app_context():
+        user = User(username='recuser', email='rec@example.com', full_name='Record User',
+                    password_hash=generate_password_hash('pass'), role='patient')
+        db.session.add(user)
+        db.session.commit()
+        token = jwt.encode({'user_id': user.user_id, 'exp': datetime.now(timezone.utc) + timedelta(hours=1)},
+                           app.config['SECRET_KEY'], algorithm="HS256")
+
+    client.set_cookie('jwt_token', token)
+    response = client.post('/api/medical_records', json={
+        'record_type': 'Prescription',
+        'description': 'Sample description',
+        'document_link': 'http://example.com/doc'
+    })
+
+    assert response.status_code == 201
+
+        
+
+
