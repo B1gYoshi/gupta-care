@@ -26,6 +26,16 @@
     border-radius: 5px;
 }
 
+.cancelButton {
+    height: 40px;
+    width: 200px;
+    color: rgb(25, 48, 48);
+
+    border: solid 1px;
+    border-color: black;
+    border-radius: 5px;
+}
+
 .calendarRoot {
     height: 100%;
 }

@@ -175,15 +175,12 @@ const AppointmentCalendar = ({ isClinician }: Props) => {
 					))}
 					</Select>
 				</FormControl>
-				<Button
-					variant="contained"
+				<button
 					onClick={cancelAppointment}
-					sx={{
-						"height": "40px"
-					}}
+					className="cancelButton"
 				>
 					Cancel Appointment
-				</Button>
+				</button>
 			</Box>
 			<Calendar
 				localizer={localizer}
