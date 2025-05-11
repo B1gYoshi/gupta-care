@@ -1,5 +1,8 @@
 import pytest
 import jwt
+from unittest.mock import patch, MagicMock
+from backend.database import check_appointments_and_send_emails, User, Appointments, db
+from datetime import datetime, timedelta
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import text
 from backend.database import app, db, User
@@ -145,6 +148,41 @@ def test_create_medical_record(client):
 
     assert response.status_code == 201
 
-        
+def test_email_reminders(client):
+    with app.app_context():
+        # Create test patient
+        patient = User(
+            username='testpatient',
+            email='testpatient@example.com',
+            full_name='Test Patient',
+            password_hash=generate_password_hash('pass'),
+            role='patient'
+        )
+        db.session.add(patient)
+        db.session.commit()
+
+        # Create test appointment for tomorrow
+        tomorrow = datetime.now() + timedelta(days=1)
+        appointment = Appointments(
+            patient_id=patient.user_id,
+            clinician_id=patient.user_id,  # not important for this test
+            appointment_datetime=tomorrow,
+            reason='Test appointment',
+            status='scheduled'
+        )
+        db.session.add(appointment)
+        db.session.commit()
+
+        # Mock the SMTP object to prevent actual emails
+        with patch("smtplib.SMTP") as mock_smtp:
+            smtp_instance = MagicMock()
+            mock_smtp.return_value.__enter__.return_value = smtp_instance
+
+            # Call the reminder function
+            check_appointments_and_send_emails()
+
+            # Ensure send_message was attempted
+            assert smtp_instance.send_message.called
+
 
 
