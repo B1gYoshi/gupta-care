@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://joshiMembers:joshiBoss@localhost:5432/gupta-care'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://joshiMembers:joshiBoss@localhost:5432/guptaCare'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     with app.test_client() as client:
