@@ -80,7 +80,7 @@ export default function PatientPrescriptions() {
             paddingBottom:   "10px",
           }}
         >
-          Prescriptions for Patient #{patientId}
+          Prescriptions
         </h2>
 
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
