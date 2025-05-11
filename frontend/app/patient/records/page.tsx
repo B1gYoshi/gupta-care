@@ -107,6 +107,26 @@ export default function Records() {
     }
   };
 
+  const handleDelete = async (recordId: number) => {
+    try {
+      const response = await fetch(`/api/medical_records/${recordId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        await fetchRecords();
+      } else {
+        const result = await response.json();
+        setStatusMessage(`Failed to delete: ${result.message}`);
+        setStatusType("error");
+      }
+    } catch (err) {
+      setStatusMessage(`Error deleting record.`);
+      setStatusType("error");
+    }
+  };
+
   return (
     <Box sx={{ px: 2, py: 6, maxWidth: '800px', margin: 'auto' }}>
       {/* Upload Box */}
@@ -174,6 +194,7 @@ export default function Records() {
                   <TableCell>Description</TableCell>
                   <TableCell>Uploaded</TableCell>
                   <TableCell>Document</TableCell>
+                  <TableCell>Action</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -187,6 +208,11 @@ export default function Records() {
                       <a href={record.document_link} target="_blank" rel="noopener noreferrer">
                         View File
                       </a>
+                    </TableCell>
+                    <TableCell>
+                      <Button color="error" onClick={() => handleDelete(record.record_id)}>
+                        Remove
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
