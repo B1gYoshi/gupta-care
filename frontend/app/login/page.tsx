@@ -178,7 +178,7 @@ export default function Login() {
 				Login
 			</button>
 
-			<button type='button' onClick={() => setSignupModalOpen(true)} className='submitButton' >
+			<button type='button' onClick={() => setSignupModalOpen(true)} className='submitButton2' >
 				Create a new account
 			</button>
         </Box>
