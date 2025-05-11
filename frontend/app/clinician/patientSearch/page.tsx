@@ -74,9 +74,11 @@ export default function PatientSearch() {
                 <td>{p.full_name}</td>
                 <td>{p.email}</td>
                 <td>
-                <button onClick={() => router.push(`/clinician/patient/${p.user_id}/prescriptions`)}>
-                  View Prescriptions
-                </button>
+                <button
+                    onClick={() => router.push(`/clinician/prescriptions/${p.user_id}`)}
+                  >
+                    View Prescriptions
+                  </button>
                 </td>
               </tr>
             ))}
