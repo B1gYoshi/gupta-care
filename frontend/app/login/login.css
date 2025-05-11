@@ -57,6 +57,17 @@
 
 }
 
+.submitButton2 {
+    height: 10%;
+    width: 20%;
+
+    border: solid 1px;
+    border-color: black;
+    border-radius: 5px;
+    margin-top: 10px;
+
+}
+
 .toggle {
     margin-left: 15px;
     background-color: rgb(255, 255, 255);
