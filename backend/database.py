@@ -77,7 +77,6 @@ class Appointments(db.Model):
     )
     created_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
 
-    # Optional: relationships to access user details from appointment
     patient = db.relationship('User', foreign_keys=[patient_id], backref='patient_appointments')
     clinician = db.relationship('User', foreign_keys=[clinician_id], backref='clinician_appointments')
 
@@ -88,6 +87,19 @@ class Appointments(db.Model):
         ),
     )
 
+class Prescription(db.Model):
+    __tablename__ = 'prescriptions'
+
+    prescription_id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='CASCADE'))
+    doctor_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='CASCADE'))
+    medication_name = db.Column(db.Text, nullable=False)
+    dosage = db.Column(db.Text)
+    frequency = db.Column(db.Text)
+    duration = db.Column(db.Text)
+    issued_at = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+    patient = db.relationship('User', foreign_keys=[patient_id])
+    doctor  = db.relationship('User', foreign_keys=[doctor_id])
 
 def get_db_connection():
     return psycopg2.connect(**DB_CONFIG)
@@ -184,17 +196,40 @@ def me(current_user):
         'created_at': current_user.created_at,
     })
 
+@app.route('/api/patient/<int:patient_id>/prescriptions', methods=['GET'])
+@token_required
+def get_patient_prescriptions(current_user, patient_id):
+    if current_user.role != 'clinician':
+        return jsonify({'message': 'Access denied'}), 403
 
+    pres = Prescription.query.filter_by(patient_id=patient_id).order_by(Prescription.issued_at.desc()).all()
+    return jsonify([{
+        'prescription_id': p.prescription_id,
+        'medication_name': p.medication_name,
+        'dosage'         : p.dosage,
+        'frequency'      : p.frequency,
+        'duration'       : p.duration,
+        'issued_at'      : p.issued_at
+    } for p in pres]), 200
 
+@app.route('/api/patient/<int:patient_id>/prescriptions', methods=['POST'])
+@token_required
+def add_prescription(current_user, patient_id):
+    if current_user.role != 'clinician':
+        return jsonify({'message': 'Access denied'}), 403
 
-
-
-
-
-
-
-
-
+    data = request.get_json()
+    new_p = Prescription(
+        patient_id      = patient_id,
+        doctor_id       = current_user.user_id,
+        medication_name = data['medication_name'],
+        dosage          = data.get('dosage'),
+        frequency       = data.get('frequency'),
+        duration        = data.get('duration')
+    )
+    db.session.add(new_p)
+    db.session.commit()
+    return jsonify({'message': 'Prescription added'}), 201
 # FILE STORAGE STUFF BELOW
 
 # create medical records table
