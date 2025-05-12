@@ -451,7 +451,6 @@ def cancel_appointment(current_user):
     if not appointment_title:
         return jsonify({"message": "Appointment title is required"}), 400
 
-    # Find the appointment based on the title
     appointment = Appointments.query.filter_by(reason=appointment_title, status='scheduled').first()
 
     if not appointment:
