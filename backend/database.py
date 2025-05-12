@@ -322,7 +322,24 @@ def upload_file(current_user):
 
     except Exception as e:
         return jsonify({'message': f'Upload failed: {str(e)}'}), 500
+    
+# remove a medial record
+@app.route('/api/medical_records/<int:record_id>', methods=['DELETE'])
+@token_required
+def delete_medical_record(current_user, record_id):
+    record = MedicalRecord.query.filter_by(record_id=record_id, patient_id=current_user.user_id).first()
+    if not record:
+        return jsonify({'message': 'Record not found'}), 404
 
+    # Attempt to extract filename from the document link
+    filename = record.document_link.split("/")[-1].split("?")[0]  # handles presigned URL format
+    try:
+        s3_client.delete_object(Bucket=STORJ_BUCKET, Key=filename)
+        db.session.delete(record)
+        db.session.commit()
+        return jsonify({'message': 'Record deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'message': f'Failed to delete record: {str(e)}'}), 500
 
 @app.route('/api/patients', methods=['GET'])
 @token_required
