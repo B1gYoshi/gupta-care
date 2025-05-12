@@ -7,6 +7,7 @@ import jwt
 from datetime import datetime, timezone, timedelta
 from functools import wraps
 from werkzeug.utils import secure_filename
+from flasgger import Swagger
 import subprocess
 
 # imports for file uploading
@@ -23,6 +24,7 @@ import smtplib
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
+swagger = Swagger(app)
 CORS(app, supports_credentials=True, origins=["http://localhost:3000"])  # Allow CORS
 
 # Database Config
@@ -120,6 +122,31 @@ def token_required(f):
 
 @app.route("/", methods=["GET"])
 def get_users():
+    """
+    Get all users
+    ---
+    tags:
+      - Users
+    summary: Retrieve all users from the database
+    responses:
+      200:
+        description: List of all users
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: John Doe
+              email:
+                type: string
+                example: john@example.com
+    """
+
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT user_id, full_name, email FROM users;")
@@ -130,6 +157,38 @@ def get_users():
 
 @app.route('/api/login', methods=['POST', 'OPTIONS'])
 def login():
+    """
+    User login
+    ---
+    tags:
+      - Authentication
+    summary: Log in a user using email and password
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - email
+            - password
+          properties:
+            email:
+              type: string
+              example: john@example.com
+            password:
+              type: string
+              example: secret123
+    responses:
+      200:
+        description: Login successful
+      401:
+        description: Invalid email or password
+    """
+
+
     data = request.get_json()
     email = data['email']
     password = data['password']
@@ -148,6 +207,17 @@ def login():
 
 @app.route('/api/logout', methods=['POST'])
 def logout():
+    """
+    User logout
+    ---
+    tags:
+      - Authentication
+    summary: Log out the current user
+    responses:
+      200:
+        description: Logout successful
+    """
+
     response = jsonify({'message': 'Logout successful'})
     response.set_cookie('jwt_token', '', expires=0, httponly=True)
     return response
@@ -155,6 +225,44 @@ def logout():
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
+    """
+    User signup
+    ---
+    tags:
+      - Authentication
+    summary: Register a new user with email, password, and role
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - email
+            - password
+            - role
+          properties:
+            email:
+              type: string
+              example: john@example.com
+            password:
+              type: string
+              example: secret123
+            role:
+              type: string
+              enum: [patient, clinician]
+              example: patient
+    responses:
+      201:
+        description: Signup successful
+      400:
+        description: Invalid role
+      409:
+        description: Email already in use
+    """
+
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
@@ -187,6 +295,33 @@ def signup():
 @app.route('/api/me', methods=['GET'])
 @token_required
 def me(current_user):
+    """
+    Get current user profile
+    ---
+    tags:
+      - Users
+    summary: Retrieve the profile of the currently authenticated user
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: Current user profile
+        schema:
+          type: object
+          properties:
+            user_id:
+              type: integer
+              example: 1
+            username:
+              type: string
+              example: johndoe
+            full_name:
+              type: string
+              example: John Doe
+            email:
+              type: string
+              example: john
+    """
     return jsonify({
         'user_id': current_user.user_id,
         'username': current_user.username,
@@ -199,6 +334,50 @@ def me(current_user):
 @app.route('/api/patient/<int:patient_id>/prescriptions', methods=['GET'])
 @token_required
 def get_patient_prescriptions(current_user, patient_id):
+    """
+    Get patient prescriptions
+    ---
+    tags:
+      - Prescriptions
+    summary: Retrieve prescriptions for a specific patient (clinician only)
+    parameters:
+      - name: patient_id
+        in: path
+        type: integer
+        required: true
+        description: ID of the patient
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: List of prescriptions for the patient
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              prescription_id:
+                type: integer
+                example: 101
+              medication_name:
+                type: string
+                example: Ibuprofen
+              dosage:
+                type: string
+                example: 200mg
+              frequency:
+                type: string
+                example: Twice a day
+              duration:
+                type: string
+                example: 5 days
+              issued_at:
+                type: string
+                format: date-time
+      403:
+        description: Access denied (not a clinician)
+    """
+
     if current_user.role != 'clinician':
         return jsonify({'message': 'Access denied'}), 403
 
@@ -215,6 +394,46 @@ def get_patient_prescriptions(current_user, patient_id):
 @app.route('/api/patient/<int:patient_id>/prescriptions', methods=['POST'])
 @token_required
 def add_prescription(current_user, patient_id):
+    """
+    Add a prescription for a patient
+    ---
+    tags:
+      - Prescriptions
+    summary: Add a new prescription for a patient (clinician only)
+    parameters:
+      - name: patient_id
+        in: path
+        type: integer
+        required: true
+        description: ID of the patient
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - medication_name
+          properties:
+            medication_name:
+              type: string
+              example: Ibuprofen
+            dosage:
+              type: string
+              example: 200mg
+            frequency:
+              type: string
+              example: Twice a day
+            duration:
+              type: string
+              example: 5 days
+    security:
+      - ApiKeyAuth: []
+    responses:
+      201:
+        description: Prescription added
+      403:
+        description: Access denied (not a clinician)
+    """
     if current_user.role != 'clinician':
         return jsonify({'message': 'Access denied'}), 403
 
@@ -230,6 +449,9 @@ def add_prescription(current_user, patient_id):
     db.session.add(new_p)
     db.session.commit()
     return jsonify({'message': 'Prescription added'}), 201
+
+
+
 # FILE STORAGE STUFF BELOW
 
 # create medical records table
@@ -250,6 +472,42 @@ class MedicalRecord(db.Model):
 @app.route('/api/medical_records', methods=['GET'])
 @token_required
 def get_medical_records(current_user):
+    """
+    Get medical records for current user
+    ---
+    tags:
+      - Medical Records
+    summary: Retrieve all medical records for the authenticated user
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: List of medical records
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              record_id:
+                type: integer
+                example: 12
+              patient_id:
+                type: integer
+                example: 5
+              record_type:
+                type: string
+                example: X-Ray
+              description:
+                type: string
+                example: Chest X-Ray from 2023
+              document_link:
+                type: string
+                example: https://link-to-storj.com/file
+              uploaded_at:
+                type: string
+                format: date-time
+    """
+
     records = MedicalRecord.query.filter_by(patient_id=current_user.user_id).all()
     result = []
     for r in records:
@@ -267,6 +525,49 @@ def get_medical_records(current_user):
 @app.route('/api/medical_records', methods=['POST'])
 @token_required
 def create_medical_record(current_user):
+    """
+    Create a new medical record
+    ---
+    tags:
+      - Medical Records
+    summary: Add a new medical record for the authenticated user
+    consumes:
+      - application/json
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - record_type
+            - document_link
+          properties:
+            record_type:
+              type: string
+              example: Blood Test
+            description:
+              type: string
+              example: Blood work done on 2024-06-12
+            document_link:
+              type: string
+              example: https://link-to-storj.com/blood-test-results
+    responses:
+      201:
+        description: Medical record created
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Medical record created
+            record_id:
+              type: integer
+              example: 45
+    """
+
     data = request.get_json()
     new_record = MedicalRecord(
         patient_id=current_user.user_id,
@@ -283,6 +584,48 @@ def create_medical_record(current_user):
 @app.route('/api/upload', methods=['POST'])
 @token_required
 def upload_file(current_user):
+    """
+    Upload a file and create a medical record
+    ---
+    tags:
+      - Medical Records
+    summary: Upload a file to cloud storage and create a medical record entry
+    consumes:
+      - multipart/form-data
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: file
+        in: formData
+        type: file
+        required: true
+        description: File to be uploaded
+      - name: record_type
+        in: formData
+        type: string
+        required: true
+        description: Type of medical record
+    responses:
+      200:
+        description: Upload successful and medical record created
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Upload successful and medical record created
+            filename:
+              type: string
+              example: report.pdf
+            record_id:
+              type: integer
+              example: 17
+      400:
+        description: Missing file or record type
+      500:
+        description: Upload failed
+    """
+
     if 'file' not in request.files or 'record_type' not in request.form:
         return jsonify({'message': 'File and record type are required'}), 400
 
@@ -327,6 +670,29 @@ def upload_file(current_user):
 @app.route('/api/medical_records/<int:record_id>', methods=['DELETE'])
 @token_required
 def delete_medical_record(current_user, record_id):
+    """
+    Delete a medical record
+    ---
+    tags:
+      - Medical Records
+    summary: Delete a specific medical record belonging to the current user
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: record_id
+        in: path
+        type: integer
+        required: true
+        description: ID of the medical record to delete
+    responses:
+      200:
+        description: Record deleted successfully
+      404:
+        description: Record not found
+      500:
+        description: Failed to delete record
+    """
+
     record = MedicalRecord.query.filter_by(record_id=record_id, patient_id=current_user.user_id).first()
     if not record:
         return jsonify({'message': 'Record not found'}), 404
@@ -344,6 +710,41 @@ def delete_medical_record(current_user, record_id):
 @app.route('/api/patients', methods=['GET'])
 @token_required
 def search_patients(current_user):
+    """
+    Search for patients
+    ---
+    tags:
+      - Users
+    summary: Search for patients by name or email (clinician only)
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - name: q
+        in: query
+        type: string
+        required: false
+        description: Search query string (partial name or email)
+    responses:
+      200:
+        description: List of matched patients
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                type: integer
+                example: 12
+              full_name:
+                type: string
+                example: Jane Smith
+              email:
+                type: string
+                example: jane@example.com
+      403:
+        description: Access denied (not a clinician)
+    """
+
     # only clinicians can search
     if current_user.role != 'clinician':
         return jsonify({'message': 'Access denied'}), 403
@@ -369,6 +770,41 @@ def search_patients(current_user):
 @app.route('/api/prescriptions', methods=['GET'])
 @token_required
 def get_prescriptions(current_user):
+    """
+    Get prescriptions for current user
+    ---
+    tags:
+      - Prescriptions
+    summary: Retrieve all prescriptions for the authenticated patient
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: List of prescriptions
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              medication_name:
+                type: string
+                example: Amoxicillin
+              dosage:
+                type: string
+                example: 500mg
+              frequency:
+                type: string
+                example: Three times a day
+              duration:
+                type: string
+                example: 7 days
+              issued_at:
+                type: string
+                format: date-time
+      403:
+        description: Access denied (not a patient)
+    """
+
     if current_user.role != 'patient':
         return jsonify({'message': 'Access denied'}), 403
 
@@ -402,6 +838,52 @@ def get_prescriptions(current_user):
 @app.route('/api/appointments', methods=['GET'])
 @token_required
 def appointments(current_user):
+    """
+    Get appointments for current user
+    ---
+    tags:
+      - Appointments
+    summary: Retrieve scheduled appointments for the authenticated user
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: List of appointments
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              appointment_id:
+                type: integer
+                example: 1001
+              patient_id:
+                type: integer
+                example: 10
+              clinician_id:
+                type: integer
+                example: 3
+              appointment_datetime:
+                type: string
+                format: date-time
+                example: 2025-06-01T09:30:00
+              location:
+                type: string
+                example: Room 201, Gupta Care Clinic
+              reason:
+                type: string
+                example: Annual physical exam
+              status:
+                type: string
+                example: scheduled
+              created_at:
+                type: string
+                format: date-time
+                example: 2025-05-01T12:00:00
+      500:
+        description: Internal server error
+    """
+
     try:
         user_appointments = None
         if current_user.role == 'patient':
@@ -432,6 +914,48 @@ def appointments(current_user):
 @app.route('/api/appointments', methods=['POST'])
 @token_required
 def createAppointment(current_user):
+    """
+    Create a new appointment
+    ---
+    tags:
+      - Appointments
+    summary: Schedule a new appointment with a patient (clinician only)
+    consumes:
+      - application/json
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - email
+            - date
+            - title
+          properties:
+            email:
+              type: string
+              example: patient@example.com
+            date:
+              type: string
+              format: date-time
+              example: 2025-06-01T09:30:00
+            title:
+              type: string
+              example: Consultation for follow-up
+    responses:
+      200:
+        description: Appointment created successfully
+      403:
+        description: Unauthorized (not a clinician)
+      404:
+        description: Patient not found
+      414:
+        description: Error with the date
+    """
+
     if current_user.role != 'clinician':
         return jsonify({"message": "Unauthorized"}), 403
 
@@ -462,6 +986,41 @@ def createAppointment(current_user):
 @app.route('/api/appointments/cancel', methods=['DELETE'])
 @token_required
 def cancel_appointment(current_user):
+
+    """
+    Cancel an appointment
+    ---
+    tags:
+      - Appointments
+    summary: Cancel a scheduled appointment (by patient or clinician)
+    consumes:
+      - application/json
+    security:
+      - ApiKeyAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - appointmentTitle
+          properties:
+            appointmentTitle:
+              type: string
+              example: Consultation for follow-up
+    responses:
+      200:
+        description: Appointment successfully cancelled
+      400:
+        description: Appointment title is required
+      403:
+        description: Unauthorized to cancel this appointment
+      404:
+        description: Appointment not found or already cancelled
+    """
+
+
     data = request.get_json()
     appointment_title = data.get('appointmentTitle')
 

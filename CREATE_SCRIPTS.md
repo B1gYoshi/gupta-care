@@ -30,24 +30,21 @@ CREATE TABLE IF NOT EXISTS public.doctor_patient (
 ```
 CREATE TABLE IF NOT EXISTS public.appointments
 (
-    appointment_id integer NOT NULL DEFAULT nextval('appointments_appointment_id_seq'::regclass),
-    patient_id integer,
-    clinician_id integer,
-    appointment_datetime timestamp without time zone NOT NULL,
-    location text COLLATE pg_catalog."default",
-    reason text COLLATE pg_catalog."default",
-    status character varying(20) COLLATE pg_catalog."default" NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT appointments_pkey PRIMARY KEY (appointment_id),
-    CONSTRAINT appointments_clinician_id_fkey FOREIGN KEY (clinician_id)
-        REFERENCES public.users (user_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
+    appointment_id SERIAL PRIMARY KEY,
+    patient_id INTEGER,
+    clinician_id INTEGER,
+    appointment_datetime TIMESTAMP NOT NULL,
+    location TEXT,
+    reason TEXT,
+    status VARCHAR(20) DEFAULT 'scheduled',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT appointments_doctor_id_fkey FOREIGN KEY (clinician_id)
+        REFERENCES public.users (user_id)
         ON DELETE CASCADE,
     CONSTRAINT appointments_patient_id_fkey FOREIGN KEY (patient_id)
-        REFERENCES public.users (user_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
+        REFERENCES public.users (user_id)
         ON DELETE CASCADE,
-    CONSTRAINT appointments_status_check CHECK (status::text = ANY (ARRAY['scheduled'::character varying, 'cancelled'::character varying, 'completed'::character varying]::text[]))
+    CONSTRAINT appointments_status_check CHECK (status IN ('scheduled', 'cancelled', 'completed'))
 );
 ```
 
